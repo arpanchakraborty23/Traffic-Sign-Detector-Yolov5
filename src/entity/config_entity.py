@@ -27,4 +27,19 @@ class DataIngestionConfig:
 
         self.data_source_url:str=traning_pipline.DATA_SOURCE_URL   
 
+class DataValidationConfig:
+    def __init__(self,traning_pippline_config:TraningPiplineConfig)->None:
+
+        ## creating data validation dir inside artifacts dir
+        self.data_validation_dir:str=os.path.join(
+            traning_pippline_config.artifacts_dir,traning_pipline.DATA_VALIDATION_DIR_NAME
+        )
+        ## creating status file inside data validation dir
+        self.status_file_path:str=os.path.join(
+            self.data_validation_dir,traning_pipline.DATA_VALIDATION_STATUS_FILE
+        )
+        ## list of all required files
+        self.all_required_files:list[str]=traning_pipline.DATA_VALIDATION_ALL_REQUIRED_FILES
+
+
 

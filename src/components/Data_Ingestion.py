@@ -10,7 +10,7 @@ class DataIngestion:
     def __init__(self,data_ingestion_config:DataIngestionConfig):
         self.config=data_ingestion_config
 
-    def download_data(self,dataset_url,zip_data_path):
+    def download_data(self,dataset_url,zip_data_path)->None:
         try: 
             # download data
             response=requests.get(dataset_url)
@@ -31,7 +31,7 @@ class DataIngestion:
         except Exception as e:
             print(e)
         
-    def unzip_data(self,unzip_data_path,zip_data_path):
+    def unzip_data(self,unzip_data_path,zip_data_path)->None:
         try:
             
             os.makedirs(unzip_data_path, exist_ok=True)
@@ -43,7 +43,7 @@ class DataIngestion:
         except Exception as e:
             print(e)
 
-    def initate_data_ingestion(self):
+    def initate_data_ingestion(self)->DataIngestionArtifact:
         try:
             data_url=self.config.data_source_url
             unzip_data_path=self.config.ingested_data

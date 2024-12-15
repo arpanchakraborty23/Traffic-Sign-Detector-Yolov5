@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+Artifacts/*
 ASS.pdf
 od
 .Python

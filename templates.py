@@ -16,6 +16,7 @@ list_of_files=[
     'src/entity/config_entity.py',
     'src/utils/__init__.py',
     'src/utils/utils.py',
+    'src/logging/__init__.py',
     'src/__init__.py',
     'Dockerfile',
     'app.py',

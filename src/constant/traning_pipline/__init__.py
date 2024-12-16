@@ -6,6 +6,8 @@ Define common constant variable for training pipeline
 """
 ARTIFACTS_DIR:str="Artifacts"
 
+NUM_CLASSES:int=10
+
 
 '''
 Data ingestion
@@ -25,6 +27,34 @@ DATA_VALIDATION_DIR_NAME:str="data_validation"
 
 DATA_VALIDATION_STATUS_FILE:str="status.txt"
 DATA_VALIDATION_ALL_REQUIRED_FILES:list[str]=["train","test","valid"]   
+
+"""
+Model training
+"""
+
+MODEL_TRAINING_DIR_NAME:str="model_training"
+
+MODEL_TRAINING_TRAINING_LOGS_NAME:str="training.log"
+
+MODEL_PATH:str="model.pt"
+
+
+MODEL_TRAINING_EPOCHS:int=1
+
+MODEL_TRAINING_BATCH_SIZE:int=16
+
+MODEL_TRAINING_PRETRAINED_WEIGHTS:str="yolov5s.pt"
+
+
+DATASET_PATH:str="E:\Traffic-Sign-Detector-Yolov5\Artifacts\data_ingestion\ingested\data.yaml"
+
+
+
+
+
+
+
+
 
 
 

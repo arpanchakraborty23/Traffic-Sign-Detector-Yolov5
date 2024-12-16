@@ -10,4 +10,11 @@ class DataIngestionArtifact:
 class DataValidationArtifact:
     status:bool
 
+@dataclass
+class ModelTrainingArtifact:
+    trained_model_path: str
+    training_logs_path: str
+   
+
+
 

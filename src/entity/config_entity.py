@@ -7,7 +7,7 @@ class TraningPiplineConfig:
     def __init__(self)->None:
         self.timestamp=datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
         self.artifacts_name=traning_pipline.ARTIFACTS_DIR
-        self.artifacts_dir=os.path.join(self.artifacts_name,self.timestamp)
+        self.artifacts_dir=os.path.join(self.artifacts_name)
 
 
 class DataIngestionConfig:
@@ -42,4 +42,35 @@ class DataValidationConfig:
         self.all_required_files:list[str]=traning_pipline.DATA_VALIDATION_ALL_REQUIRED_FILES
 
 
+class ModelTrainingConfig:
+    def __init__(self, training_pipeline_config: TraningPiplineConfig) -> None:
 
+        # Create model training directory inside artifacts
+        self.model_training_dir: str = os.path.join(
+            training_pipeline_config.artifacts_dir, traning_pipline.MODEL_TRAINING_DIR_NAME
+        )
+
+        # Trained model file path
+        self.trained_model_path: str = os.path.join(
+            self.model_training_dir, traning_pipline.MODEL_PATH
+        )
+
+        # Logs path for training
+        self.training_logs_path: str = os.path.join(
+            self.model_training_dir, traning_pipline.MODEL_TRAINING_TRAINING_LOGS_NAME
+        )
+
+        # Training hyperparameters
+        self.model_training_batch_size: int = traning_pipline.MODEL_TRAINING_BATCH_SIZE
+        # number of epochs
+        self.model_training_epochs: int = traning_pipline.MODEL_TRAINING_EPOCHS
+
+        # Pretrained weights file path
+        self.pretrained_weights_file_path: str = traning_pipline.MODEL_TRAINING_PRETRAINED_WEIGHTS
+
+        # Dataset path
+        self.dataset_path: str = traning_pipline.DATASET_PATH
+
+        # Number of classes
+        self.num_classes: int = traning_pipline.NUM_CLASSES
+       

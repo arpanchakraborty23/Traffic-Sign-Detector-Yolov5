@@ -4,125 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Object Detection</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            color: #f1f1f1;
-            background-color: #121212; /* Dark background */
-            line-height: 1.6;
-            text-align: center;
-        }
-
-        header {
-            background-color: #1e1e1e;
-            padding: 20px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.6);
-        }
-
-        header h1 {
-            margin: 0;
-            color: #4caf50;
-        }
-
-        main {
-            padding: 20px;
-        }
-
-        form {
-            margin: 20px auto;
-            max-width: 600px;
-            background-color: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.6);
-        }
-
-        form input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #333;
-            border-radius: 5px;
-            background-color: #1e1e1e;
-            color: #f1f1f1;
-        }
-
-        form button {
-            background-color: #4caf50;
-            color: #121212;
-            border: none;
-            padding: 10px 15px;
-            font-size: 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        form button:hover {
-            background-color: #3e8e41;
-        }
-
-        .results {
-            margin: 20px;
-        }
-
-        img {
-            max-width: 90%;
-            border: 5px solid #4caf50;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-
-        table {
-            margin: 20px auto;
-            border-collapse: collapse;
-            width: 80%;
-        }
-
-        table th, table td {
-            padding: 10px;
-            border: 1px solid #4caf50;
-            text-align: left;
-        }
-
-        table th {
-            background-color: #333;
-        }
-    </style>
 </head>
 <body>
-    <header>
-        <h1>Object Detection App</h1>
-    </header>
-    <main>
-        <form action="/" method="post" enctype="multipart/form-data">
-            <input type="file" name="image" accept="image/*" required>
-            <button type="submit">Upload and Detect</button>
-        </form>
-
-        {% if uploaded_image and result_image %}
-        <div class="results">
-            <h2>Original Image</h2>
-            <img src="{{ uploaded_image }}" alt="Uploaded Image">
-            <h2>Detection Results</h2>
-            <img src="{{ result_image }}" alt="Result Image">
-            <h3>Detected Objects:</h3>
-            <table>
-                <tr>
-                    <th>Object</th>
-                    <th>Confidence</th>
-                </tr>
-                {% for obj in detections %}
-                <tr>
-                    <td>{{ obj.name }}</td>
-                    <td>{{ obj.confidence | round(2) }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-        {% endif %}
-    </main>
+    <h1>Object Detection App</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="image">Upload an Image:</label><br>
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">Upload and Detect</button>
+    </form>
 </body>
 </html>

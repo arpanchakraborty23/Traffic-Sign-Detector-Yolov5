@@ -7,7 +7,6 @@ list_of_files=[
     'expariment/expariment.ipynb',
     'setup.py',
     'templates/index.html',
-    'data',
     'src/components/__init__.py',
     'src/pipline/__init__.py',
     'src/constant/traning_pipline/__init__.py',
@@ -20,7 +19,6 @@ list_of_files=[
     'src/__init__.py',
     'Dockerfile',
     'app.py',
-    'main.py',
     'requirements.txt',
 ]
 

@@ -105,12 +105,15 @@ Model training and evaluation are implemented using **YOLOv5**.
      ```
      - Load the dataset from the `Artifacts/data_ingestion/` directory.
      ```bash
-     model.train(data='Artifacts/data_ingestion/data.yaml',
-      epochs=100, 
-      imgsz=640)
+     model.train(
+                data=training_dir,
+                epochs=1,
+                batch=16
+            )
      ```
 5. **Output**:
    - The best-trained weights are saved in the `Artifacts/model_training/` directory.
+   - The training logs are saved in the `Artifacts/model_training/training.log` directory.
 
 ---
 

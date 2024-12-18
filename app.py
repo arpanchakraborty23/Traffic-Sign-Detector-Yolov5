@@ -4,7 +4,8 @@ from flask import Flask, request, jsonify, render_template, send_file, Response
 from flask_cors import CORS
 from ultralytics import YOLO
 import cv2
-import base64
+from src.utils.utils import decodeImage, encodeImageIntoBase64, download_json
+from src.constant.traning_pipline import MODEL_PATH
 
 # Flask app configuration   
 APP_HOST = '0.0.0.0'
@@ -20,11 +21,9 @@ class ClientApp:
     def __init__(self):
         self.input_filename = "./data/inputImage.jpg"
         self.output_filename = "./data/outputImage.jpg"
-        self.model = YOLO("Artifacts\model_training\model.pt")  # Load the YOLO model 
+        self.model = YOLO('Artifacts/model_training/model.pt')  # Load the YOLO model 
 
 clApp = ClientApp()
-
-
 
 @app.route("/")
 def home():
@@ -45,45 +44,23 @@ def predict():
         results = clApp.model.predict(source=clApp.input_filename, save=False, conf=0.5)
 
         # Get the annotated image from the results
-        annotated_frame = results[0].plot()  # Draw bounding boxes on the image
+        annotated_frame = results[0].plot()  # Draw predictions on the image
 
         # Save the annotated image
         cv2.imwrite(clApp.output_filename, annotated_frame)
 
-        # Extract bounding boxes and labels
-        boxes = results[0].boxes.xyxy  # Get bounding boxes in xyxy format
-        confidences = results[0].boxes.conf  # Confidence scores
-        labels = results[0].names  # Class labels
-
-        # Prepare bounding box data
-        bounding_boxes = []
-        for i in range(len(boxes)):
-            box = boxes[i].tolist()
-            confidence = confidences[i].item()
-            label = labels[int(results[0].boxes.cls[i].item())]
-            bounding_boxes.append({
-                "label": label,
-                "confidence": confidence,
-                "box": box  # [x_min, y_min, x_max, y_max]
-            })
-
         # Encode the output image to base64
         encoded_output = encodeImageIntoBase64(clApp.output_filename)
 
-        # Prepare JSON file data
-        bounding_box_data = {
+        # Prepare response data
+        response_data = {
             "message": "Image processed successfully!",
-            "image": encoded_output.decode('utf-8'),  # Base64 encoded output image
-            "bounding_boxes": bounding_boxes  # List of bounding boxes with labels and confidence
+            "image": encoded_output.decode('utf-8')  # Base64 encoded output image
         }
+        
 
-        # Save the bounding box data to a JSON file
-        json_filename = "./data/output_data.json"
-        with open(json_filename, 'w') as json_file:
-            json.dump(bounding_box_data, json_file)
-
-        # Return the result with bounding box data in JSON format
-        return jsonify(bounding_box_data), 200
+        # Return the result
+        return jsonify(response_data), 200
 
     except Exception as e:
         print(f"Error: {e}")
@@ -114,7 +91,7 @@ def live_detection():
 
             # Perform object detection on the frame
             results = clApp.model.predict(source=frame, conf=0.5)
-            annotated_frame = results[0].plot()  # Annotate the frame with bounding boxes
+            annotated_frame = results[0].plot()  # Annotate the frame with predictions
 
             # Convert frame to JPEG for streaming
             _, jpeg = cv2.imencode('.jpg', annotated_frame)

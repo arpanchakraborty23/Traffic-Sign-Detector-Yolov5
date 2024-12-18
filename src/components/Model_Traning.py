@@ -40,10 +40,12 @@ class ModelTraining:
             # Start model training
             logging.info("Starting model training.")
             model.train(
-                data=training_dir,
-                epochs=self.model_training_config.model_training_epochs,
-                batch=self.model_training_config.model_training_batch_size
-            )
+                        data=training_dir,  # Path to the dataset YAML file
+                        epochs=self.model_training_config.model_training_epochs,
+                        batch=self.model_training_config.model_training_batch_size,
+                        project=self.model_training_config.training_logs_path,  # Save results in the current directory
+                        name='training_results'  # Subdirectory for this training run
+                        )
             logging.info("Model training completed successfully.")
 
             # Ensure the directory for saving the model exists

@@ -1,139 +1,119 @@
+import os
+import json
 from flask import Flask, request, jsonify, render_template, send_file
 from flask_cors import CORS
 from ultralytics import YOLO
-import os
 import cv2
-import numpy as np
-from werkzeug.utils import secure_filename
+import base64
 
-# Flask App Configuration
+# Flask app configuration
+APP_HOST = '0.0.0.0'
+APP_PORT = 8080
+
+# Ensure the directory exists
+os.makedirs('./data', exist_ok=True)
+
 app = Flask(__name__)
 CORS(app)
 
-# Paths and Directories
-UPLOAD_FOLDER = "uploads"
-RESULT_FOLDER = "results"
-MODEL_PATH = "yolov8n.pt"  # Lightweight YOLO model
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(RESULT_FOLDER, exist_ok=True)
+class ClientApp:
+    def __init__(self):
+        self.input_filename = "./data/inputImage.jpg"
+        self.output_filename = "./data/outputImage.jpg"
+        self.model = YOLO("Artifacts\\model_training\\model.pt")  # Load the YOLO model 
 
-# Load YOLO Model
-MODEL_PATH='E:\Traffic-Sign-Detector-Yolov5\Artifacts\model_training\model.pt'
-model = YOLO(MODEL_PATH)
+clApp = ClientApp()
 
+def decodeImage(image_data, file_path):
+    try:
+        with open(file_path, "wb") as file:
+            file.write(base64.b64decode(image_data))
+    except Exception as e:
+        print(f"Error decoding image: {e}")
 
-# ===================== UI ROUTES =====================
+def encodeImageIntoBase64(file_path):
+    try:
+        with open(file_path, "rb") as file:
+            return base64.b64encode(file.read())
+    except Exception as e:
+        print(f"Error encoding image: {e}")
+
 @app.route("/")
 def home():
-    """
-    Render the home page with an upload form.
-    """
     return render_template("index.html")
 
-
-@app.route("/upload", methods=["POST"])
-def upload_image():
-    """
-    Handle image upload from the user and display detection results.
-    """
-    try:
-        # Check if the image file exists in the request
-        if "image" not in request.files:
-            return jsonify({"error": "No image file provided."}), 400
-        
-        file = request.files["image"]
-        if file.filename == "":
-            return jsonify({"error": "No file selected."}), 400
-
-        # Save the uploaded image
-        filename = secure_filename(file.filename)
-        input_image_path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(input_image_path)
-
-        # Run object detection
-        results = model.predict(input_image_path, save=True)
-
-        # Extract detection results
-        detections = []
-        for result in results:
-            for box in result.boxes:
-                detections.append({
-                    "class": int(box.cls[0]),       # Class ID
-                    "confidence": round(float(box.conf[0]), 2),  # Confidence
-                    "bbox": [                       # Bounding box
-                        round(float(coord), 2) for coord in box.xyxy[0]
-                    ]
-                })
-
-        # Find the saved annotated image path (YOLO saves it automatically)
-        annotated_image_dir = os.path.join("runs", "detect", "predict")
-        annotated_image_path = os.path.join(annotated_image_dir, filename)
-
-        # Move the annotated image to the RESULT_FOLDER
-        final_result_path = os.path.join(RESULT_FOLDER, filename)
-        os.replace(annotated_image_path, final_result_path)
-
-        # Return results
-        return render_template(
-            "results.html",
-            detections=detections,
-            annotated_image=final_result_path
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ===================== API ROUTES =====================
-@app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=['POST'])
 def predict():
-    """
-    API endpoint to handle object detection and return JSON results.
-    """
     try:
-        # Check if image file exists
-        if "image" not in request.files:
-            return jsonify({"error": "No image file provided."}), 400
-        
-        file = request.files["image"]
-        filename = secure_filename(file.filename)
-        input_image_path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(input_image_path)
+        # Decode image from request
+        image_data = request.json.get('image')
+        if not image_data:
+            return jsonify({"error": "No image data provided"}), 400
 
-        # Run YOLO model for object detection
-        results = model.predict(input_image_path, save=True)
+        # Save the input image
+        decodeImage(image_data, clApp.input_filename)
 
-        # Process results into JSON format
-        detections = []
-        for result in results:
-            for box in result.boxes:
-                detections.append({
-                    "class": int(box.cls[0]),
-                    "confidence": round(float(box.conf[0]), 2),
-                    "bbox": [
-                        round(float(coord), 2) for coord in box.xyxy[0]
-                    ]
-                })
+        # Perform object detection using YOLO
+        results = clApp.model.predict(source=clApp.input_filename, save=False, conf=0.5)
 
-        # Find the annotated image path
-        annotated_image_dir = os.path.join("runs", "detect", "predict")
-        annotated_image_path = os.path.join(annotated_image_dir, filename)
+        # Get the annotated image from the results
+        annotated_frame = results[0].plot()  # Draw bounding boxes on the image
 
-        # Move annotated image to result folder
-        final_result_path = os.path.join(RESULT_FOLDER, filename)
-        os.replace(annotated_image_path, final_result_path)
+        # Save the annotated image
+        cv2.imwrite(clApp.output_filename, annotated_frame)
 
-        # Return JSON response
-        response = {
-            "detections": detections,
-            "annotated_image": final_result_path
+        # Extract bounding boxes and labels
+        boxes = results[0].boxes.xyxy  # Get bounding boxes in xyxy format
+        confidences = results[0].boxes.conf  # Confidence scores
+        labels = results[0].names  # Class labels
+
+        # Prepare bounding box data
+        bounding_boxes = []
+        for i in range(len(boxes)):
+            box = boxes[i].tolist()
+            confidence = confidences[i].item()
+            label = labels[int(results[0].boxes.cls[i].item())]
+            bounding_boxes.append({
+                "label": label,
+                "confidence": confidence,
+                "box": box  # [x_min, y_min, x_max, y_max]
+            })
+
+        # Encode the output image to base64
+        encoded_output = encodeImageIntoBase64(clApp.output_filename)
+
+        # Prepare JSON file data
+        bounding_box_data = {
+            "message": "Image processed successfully!",
+            "image": encoded_output.decode('utf-8'),  # Base64 encoded output image
+            "bounding_boxes": bounding_boxes  # List of bounding boxes with labels and confidence
         }
-        return jsonify(response)
+
+        # Save the bounding box data to a JSON file
+        json_filename = "./data/output_data.json"
+        with open(json_filename, 'w') as json_file:
+            json.dump(bounding_box_data, json_file)
+
+ 
+
+        # Return the result with bounding box data in JSON format
+        return jsonify(bounding_box_data), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
+@app.route("/download_json", methods=['GET'])
+def download_json(json_filename):
+    try:
+        json_filename = "./data/output_data.json"
+        if os.path.exists(json_filename):
+            return send_file(json_filename, as_attachment=True)
+        else:
+            return jsonify({"error": "No JSON file found"}), 404
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
-# ===================== RUN THE APP =====================
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(host=APP_HOST, port=APP_PORT)

@@ -1,32 +1,18 @@
-import logging
+
 import os
 import base64
 
-logging.basicConfig(level=logging.INFO)
 
-def decodeImage(imgstring, fileName):
+def decodeImage(image_data, file_path):
     try:
-        directory = "./data"
-        os.makedirs(directory, exist_ok=True)
-        file_path = os.path.join(directory, fileName)
-
-        imgdata = base64.b64decode(imgstring)
-        with open(file_path, 'wb') as f:
-            f.write(imgdata)
-        logging.info(f"Image successfully decoded and saved to {file_path}")
+        with open(file_path, "wb") as file:
+            file.write(base64.b64decode(image_data))
     except Exception as e:
-        logging.error(f"Error decoding image: {e}")
-        raise e
+        print(f"Error decoding image: {e}")
 
-def encodeImageIntoBase64(croppedImagePath):
+def encodeImageIntoBase64(file_path):
     try:
-        if not os.path.exists(croppedImagePath):
-            raise FileNotFoundError(f"File does not exist: {croppedImagePath}")
-
-        with open(croppedImagePath, "rb") as f:
-            encoded = base64.b64encode(f.read())
-        logging.info(f"Image successfully encoded to base64: {croppedImagePath}")
-        return encoded
+        with open(file_path, "rb") as file:
+            return base64.b64encode(file.read())
     except Exception as e:
-        logging.error(f"Error encoding image: {e}")
-        raise e 
+        print(f"Error encoding image: {e}")

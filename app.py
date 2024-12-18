@@ -1,12 +1,12 @@
 import os
 import json
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_file, Response
 from flask_cors import CORS
 from ultralytics import YOLO
 import cv2
 import base64
 
-# Flask app configuration
+# Flask app configuration   
 APP_HOST = '0.0.0.0'
 APP_PORT = 8080
 
@@ -20,23 +20,11 @@ class ClientApp:
     def __init__(self):
         self.input_filename = "./data/inputImage.jpg"
         self.output_filename = "./data/outputImage.jpg"
-        self.model = YOLO("Artifacts\\model_training\\model.pt")  # Load the YOLO model 
+        self.model = YOLO("Artifacts\model_training\model.pt")  # Load the YOLO model 
 
 clApp = ClientApp()
 
-def decodeImage(image_data, file_path):
-    try:
-        with open(file_path, "wb") as file:
-            file.write(base64.b64decode(image_data))
-    except Exception as e:
-        print(f"Error decoding image: {e}")
 
-def encodeImageIntoBase64(file_path):
-    try:
-        with open(file_path, "rb") as file:
-            return base64.b64encode(file.read())
-    except Exception as e:
-        print(f"Error encoding image: {e}")
 
 @app.route("/")
 def home():
@@ -94,8 +82,6 @@ def predict():
         with open(json_filename, 'w') as json_file:
             json.dump(bounding_box_data, json_file)
 
- 
-
         # Return the result with bounding box data in JSON format
         return jsonify(bounding_box_data), 200
 
@@ -104,7 +90,7 @@ def predict():
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/download_json", methods=['GET'])
-def download_json(json_filename):
+def download_json():
     try:
         json_filename = "./data/output_data.json"
         if os.path.exists(json_filename):
@@ -114,6 +100,33 @@ def download_json(json_filename):
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
+# Live detection route using the webcam
+@app.route("/live_detection")
+def live_detection():
+    def generate():
+        cap = cv2.VideoCapture(0)  # Access the webcam (0 for default webcam)
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            # Perform object detection on the frame
+            results = clApp.model.predict(source=frame, conf=0.5)
+            annotated_frame = results[0].plot()  # Annotate the frame with bounding boxes
+
+            # Convert frame to JPEG for streaming
+            _, jpeg = cv2.imencode('.jpg', annotated_frame)
+            frame_bytes = jpeg.tobytes()
+
+            # Yield the frame as a part of a multipart HTTP response
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+        cap.release()
+
+    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == "__main__":
     app.run(host=APP_HOST, port=APP_PORT)

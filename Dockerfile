@@ -1,11 +1,8 @@
 FROM python:3.8-slim-buster
-
 WORKDIR /app
+COPY . /app
 
-COPY requirements.txt .
+RUN apt update -y 
 
-RUN pip install -r requirements.txt
-
-COPY . .
-
-CMD ["python", "app.py"]
+RUN apt-get update  && pip install -r requirements.txt
+CMD ["python3", "app.py"]

@@ -1,19 +1,10 @@
-FROM python:3.9-slim-buster  
+FROM ultralytics/yolov5:latest-cpu
+WORKDIR /code
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
 
-WORKDIR /app
-
-# Install system dependencies and clean up apt cache
-RUN apt-get update 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt 
-
-# Copy your application code
-COPY . /app 
-WORKDIR /app
-
-RUN apt-get update
-
-
-# Set the entrypoint
-CMD ["python3", "app.py"]
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+EXPOSE 8080
+COPY . .
+CMD ["flask", "run", "--debug"]

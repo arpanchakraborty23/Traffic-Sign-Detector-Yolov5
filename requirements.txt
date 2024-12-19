@@ -56,4 +56,4 @@ setuptools>=70.0.0 # Snyk vulnerability fix
 uvicorn
 fastapi
 
--e .
+# -e .

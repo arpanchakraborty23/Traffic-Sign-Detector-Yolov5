@@ -1,8 +1,19 @@
-FROM python:3.8-slim-buster
+FROM python:3.9-slim-buster  
+
 WORKDIR /app
-COPY . /app
 
-RUN apt update -y 
+# Install system dependencies and clean up apt cache
+RUN apt-get update 
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt 
 
-RUN apt-get update  && pip install -r requirements.txt
+# Copy your application code
+COPY . /app 
+WORKDIR /app
+
+RUN apt-get update
+
+
+# Set the entrypoint
 CMD ["python3", "app.py"]

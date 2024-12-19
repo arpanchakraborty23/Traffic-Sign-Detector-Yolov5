@@ -3,6 +3,7 @@ import json
 from flask import Flask, request, jsonify, render_template, send_file, Response
 from flask_cors import CORS
 from ultralytics import YOLO
+
 import cv2
 from src.utils.utils import decodeImage, encodeImageIntoBase64, download_json
 from src.constant.traning_pipline import MODEL_PATH
